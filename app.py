@@ -1,9 +1,50 @@
+import os
+
+import jwt
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(page_title="Investments", page_icon="📈", layout="wide")
+CF_TEAM_DOMAIN = os.environ.get("CF_ACCESS_TEAM_DOMAIN", "")
+CF_AUD = os.environ.get("CF_ACCESS_AUD", "")
+DEV_MODE = os.environ.get("DEV_MODE") == "1"
 
+
+@st.cache_resource
+def jwks_client():
+    return jwt.PyJWKClient(f"{CF_TEAM_DOMAIN}/cdn-cgi/access/certs")
+
+
+def require_cf_access():
+    if DEV_MODE:
+        return "dev@local"
+    if not CF_TEAM_DOMAIN or not CF_AUD:
+        st.error("Cloudflare Access env vars are not configured.")
+        st.stop()
+    headers = st.context.headers
+    token = headers.get("Cf-Access-Jwt-Assertion") or headers.get("cf-access-jwt-assertion")
+    if not token:
+        st.error("Access denied.")
+        st.stop()
+    try:
+        signing_key = jwks_client().get_signing_key_from_jwt(token).key
+        claims = jwt.decode(
+            token,
+            signing_key,
+            algorithms=["RS256"],
+            audience=CF_AUD,
+            issuer=CF_TEAM_DOMAIN,
+        )
+    except jwt.PyJWTError:
+        st.error("Access denied.")
+        st.stop()
+    return claims.get("email", "unknown")
+
+
+email = require_cf_access()
+
+st.set_page_config(page_title="Investments", page_icon="📈", layout="wide")
 st.title("Investments — hello world")
+st.caption(f"Signed in as {email}")
 
 holdings = pd.DataFrame(
     {

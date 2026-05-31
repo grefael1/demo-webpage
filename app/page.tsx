@@ -2,6 +2,7 @@ import { AllocationChart } from "@/components/AllocationChart";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { MetricCard } from "@/components/MetricCard";
 import { PerformanceChart } from "@/components/PerformanceChart";
+import { UserMenu } from "@/components/UserMenu";
 import { cash, holdings, performanceHistory } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
 
@@ -17,9 +18,12 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Investments</h1>
-        <p className="mt-1 text-sm text-neutral-400">Personal portfolio · demo</p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Investments</h1>
+          <p className="mt-1 text-sm text-neutral-400">Personal portfolio · demo</p>
+        </div>
+        <UserMenu />
       </header>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
